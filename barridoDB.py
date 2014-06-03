@@ -15,6 +15,8 @@ encabezado39msn4 = "GET /A/B/7F260009843900000008"
 _39 = ""
 final39 = " HTTP/1.1"
 
+
+
 def SincronizarReloj():
     global r, comando
     r = os.system('ntpdate {0}'.format(config.ntpserver))
@@ -45,6 +47,7 @@ def ConexionDB():
     fechaAcomprar = "{0} {1}".format(hora[11:], fecha[:-9])
     aa = time.strptime(fechaAcomprar, '%H:%M:%S %Y-%m-%d')
     if r == 0:
+
         tiempoDB = time.mktime(aa)
         tiempoSys = time.mktime(time.localtime())
         minutosDesincronizados = (tiempoSys - tiempoDB)/60
@@ -60,7 +63,7 @@ def ConexionDB():
             _39="{0}{1}".format(_39, "000A")
             config.logging.info( "Todo Normal 000A")
     else:
-        config.logging.info("No Internet   codigo de Error!!!! 0001")
+        config.logging.info("Reloj no sincronizado   codigo de Error!!!! 0001")
         _39= "{0}{1}".format(_39, "0001")
 
 
@@ -97,6 +100,7 @@ def adquierefecha(ip):
 ip = 1
 config.logging.info("Inicializando...")
 time.sleep(30)
+
 SincronizarReloj()
 
 while True:
