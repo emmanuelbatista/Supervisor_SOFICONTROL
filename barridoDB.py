@@ -1,6 +1,6 @@
 __author__ = 'chapo'
 
-#cambio  jj
+
 import MySQLdb
 import time
 import socket
