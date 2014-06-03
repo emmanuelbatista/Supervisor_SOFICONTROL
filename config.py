@@ -26,3 +26,6 @@ ntpserver = 'pool.ntp.org'
 
 # Thread lock
 lock = threading.Lock()
+
+#Reintentos de conexion a base de datos
+reintentosdb = 3

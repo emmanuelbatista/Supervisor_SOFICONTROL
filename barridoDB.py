@@ -6,6 +6,7 @@ import time
 import socket
 import os
 import config
+import re
 
 
 encabezado39msn1 = "GET /A/B/7F260009813900000008"
@@ -15,15 +16,23 @@ encabezado39msn4 = "GET /A/B/7F260009843900000008"
 _39 = ""
 final39 = " HTTP/1.1"
 
-
+def ping():
+    pingMatch = None
+    while pingMatch is None:
+        time.sleep(10)
+        config.logging.info("Trying to ping google")
+        pingResult = os.popen("ping -c 1 www.google.com").read()
+        pingMatch = re.search(', 1 received', pingResult)
 
 def SincronizarReloj():
     global r, comando
-    r = os.system('ntpdate {0}'.format(config.ntpserver))
-    if r == 0:
-        config.logging.info("Reloj Sincronizado")
-    else:
-        config.logging.info("No Hora Valida")
+    while r != 0:
+        time.sleep(10)
+        r = os.system('ntpdate {0}'.format(config.ntpserver))
+        if r == 0:
+            config.logging.info("Reloj Sincronizado")
+        else:
+            config.logging.info("No Hora Valida... Reintentando")
 
 def ConexionDB():
     global comando, _39, r, secuenciaIp
@@ -39,33 +48,24 @@ def ConexionDB():
     cursor.close()
     db.close()
 
-    # Get ntp time
-    #r = os.system('ntpdate {0}'.format(config.ntpserver))
-
     hora = str(fechaBd)
     fecha = str(fechaBd)
     fechaAcomprar = "{0} {1}".format(hora[11:], fecha[:-9])
     aa = time.strptime(fechaAcomprar, '%H:%M:%S %Y-%m-%d')
-    if r == 0:
+    tiempoDB = time.mktime(aa)
+    tiempoSys = time.mktime(time.localtime())
+    minutosDesincronizados = (tiempoSys - tiempoDB)/60
+    entero =int(round(minutosDesincronizados))
+    config.logging.debug(hex(entero))
+    config.logging.info(format(entero, '#06X'))
+    valor =format(entero, '#06X')
 
-        tiempoDB = time.mktime(aa)
-        tiempoSys = time.mktime(time.localtime())
-        minutosDesincronizados = (tiempoSys - tiempoDB)/60
-        entero =int(round(minutosDesincronizados))
-        config.logging.debug(hex(entero))
-        config.logging.info(format(entero, '#06X'))
-        valor =format(entero, '#06X')
-
-        if entero >= 11:
-            _39 = "{0}{1}".format(_39, valor[2:])
-            config.logging.info( minutosDesincronizados)
-        else:
-            _39="{0}{1}".format(_39, "000A")
-            config.logging.info( "Todo Normal 000A")
+    if entero >= 11:
+        _39 = "{0}{1}".format(_39, valor[2:])
+        config.logging.info("Tiempo de desconexion = {0}".format(minutosDesincronizados))
     else:
-        config.logging.info("Reloj no sincronizado   codigo de Error!!!! 0001")
-        _39= "{0}{1}".format(_39, "0001")
-
+        _39="{0}{1}".format(_39, "000A")
+        config.logging.info( "Todo Normal 000A")
 
 def adquierefecha(ip):
     global comando, _39, r, secuenciaIp
@@ -77,30 +77,25 @@ def adquierefecha(ip):
         _39 = "{0}{1}".format(_39, "0000")
 
     else:
-
-        try:
-            config.logging.info("Intentando comunicacion con Base de Datos")
-            ConexionDB()
-        except MySQLdb.Error, e:
-            config.logging.info("Reintentando comunicacion con Base de Datos")
+        c = 0
+        while c < config.reintentosdb:
             try:
-                time.sleep(2)
+                config.logging.info("Intentando comunicacion con Base de Datos")
                 ConexionDB()
-            except MySQLdb.Error, e:
-                config.logging.info("Reintentando comunicacion con Base de Datos")
-                try:
-                    time.sleep(2)
-                    ConexionDB()
-                except MySQLdb.Error, e:
-                    config.logging.info("Comunicacion con Base de Datos Fallida")
-                    config.logging.info("Error {0}  0005".format(e.args))
-                    _39="{0}{1}".format(_39,"0005")
+            except MySQLdb.Error:
+                time.sleep(2)
+                c += 1
+            else:
+                break
+        if c >= 3:
+            config.logging.info("Comunicacion con Base de Datos Fallida")
+            _39="{0}{1}".format(_39,"0005")
 
 #GET /A/B/7F260009333900000008 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 FFED 0000 0000 HTTP/1.1
 ip = 1
 config.logging.info("Inicializando...")
 time.sleep(30)
-
+ping()
 SincronizarReloj()
 
 while True:
@@ -155,8 +150,8 @@ while True:
             ip += 1
         else:
             ip = 1
-            time.sleep(900)
-            SincronizarReloj()
+            time.sleep(300)
+            ping()
 
     except socket.timeout, e:
         s.close()
