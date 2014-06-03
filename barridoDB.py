@@ -37,6 +37,7 @@ def SincronizarReloj():
 def ConexionDB():
     global comando, _39, r, secuenciaIp
 
+    #DB Connect
     db = MySQLdb.connect(host=secuenciaIp, user='admin', passwd='petrolog', db='eventosg4', connect_timeout=15)
     config.logging.info("Comunicacion con Base de Datos Correcta!!!")
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
@@ -78,7 +79,7 @@ def adquierefecha(ip):
 
     else:
         c = 0
-        while c < config.reintentosdb:
+        while c <= config.reintentosdb:
             try:
                 config.logging.info("Intentando comunicacion con Base de Datos")
                 ConexionDB()
