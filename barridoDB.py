@@ -21,25 +21,13 @@ def SincronizarReloj():
     if r == 0:
         config.logging.info("Reloj Sincronizado")
     else:
-        time.sleep(2)
-        r = os.system('ntpdate {0}'.format(config.ntpserver))
-        if r == 0:
-                config.logging.info("Reloj Sincronizado")
-        else:
-            time.sleep(2)
-            r = os.system('ntpdate {0}'.format(config.ntpserver))
-            if r == 0:
-                config.logging.info("Reloj Sincronizado")
-            else:
-                config.logging.info("Reloj No Sincronizado")
-                config.logging.info("ERROR No Internet")
+        config.logging.info("No Hora Valida")
 
 def ConexionDB():
     global comando, _39, r, secuenciaIp
 
     db = MySQLdb.connect(host=secuenciaIp, user='admin', passwd='petrolog', db='eventosg4', connect_timeout=15)
     config.logging.info("Comunicacion con Base de Datos Correcta!!!")
-    # Traemos el Comando que toca dependiendo del estado en que se debe de encotrar el equipo
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT fecha_adquisicion FROM eventos')
     temp = cursor.fetchone()
@@ -166,7 +154,7 @@ while True:
             time.sleep(900)
             SincronizarReloj()
 
-    except socket.timeout,e:
+    except socket.timeout, e:
         s.close()
         config.logging.info("-----Time Out socket No hay internet-------")
         config.logging.info("39 sin internet  --->{0}{1}{2}".format(encabezado39msn4,_39,final39))
