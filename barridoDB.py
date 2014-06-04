@@ -107,8 +107,8 @@ while True:
             if ip == 14:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
-                s.send("{0}{1}{2}".format(encabezado39msn4, _39, final39))
-                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn4, _39, final39))
+                s.send("{0}{1}{2}".format(encabezado39msn1, _39, final39))
+                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn1, _39, final39))
                 config.logging.info("Respuesta correcta!!!!  {0}".format(s.recv(1024)))
                 s.close()
                 _39 = ""
@@ -119,8 +119,8 @@ while True:
             if ip == 28:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
-                s.send("{0}{1}{2}".format(encabezado39msn4, _39, final39))
-                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn4, _39, final39))
+                s.send("{0}{1}{2}".format(encabezado39msn2, _39, final39))
+                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn2, _39, final39))
                 config.logging.info("Respuesta correcta!!!!  {0}".format(s.recv(1024)))
                 s.close()
                 _39 = ""
@@ -131,8 +131,8 @@ while True:
             if ip == 42:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
-                s.send("{0}{1}{2}".format(encabezado39msn4, _39, final39))
-                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn4, _39, final39))
+                s.send("{0}{1}{2}".format(encabezado39msn3, _39, final39))
+                config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn3, _39, final39))
                 config.logging.info("Respuesta correcta!!!!  {0}".format(s.recv(1024)))
                 s.close()
                 _39 = ""
