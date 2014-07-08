@@ -16,6 +16,7 @@ encabezado39msn4 = "GET /A/B/7F260009843900000008"
 _39 = ""
 final39 = " HTTP/1.1"
 
+
 def ping():
     pingMatch = None
     while pingMatch is None:
@@ -23,22 +24,30 @@ def ping():
         config.logging.info("Trying to ping google")
         pingResult = os.popen("ping -c 1 www.google.com").read()
         pingMatch = re.search(', 1 received', pingResult)
+        if pingMatch != None:
+            config.logging.info("ping to google succesfull")
+        else:
+            config.logging.info("ping to google fail")
+
 
 def SincronizarReloj():
     global r, comando
+    r = 200
     while r != 0:
         time.sleep(10)
+        config.logging.info("Trying to syncronize the clock")
         r = os.system('ntpdate {0}'.format(config.ntpserver))
         if r == 0:
             config.logging.info("Reloj Sincronizado")
         else:
             config.logging.info("No Hora Valida... Reintentando")
 
+
 def ConexionDB():
     global comando, _39, r, secuenciaIp
 
     #DB Connect
-    db = MySQLdb.connect(host=secuenciaIp, user='admin', passwd='petrolog', db='eventosg4', connect_timeout=15)
+    db = MySQLdb.connect(host=secuenciaIp, user='admin', passwd='petrolog', db='eventosg4', connect_timeout=10)
     config.logging.info("Comunicacion con Base de Datos Correcta!!!")
     cursor = db.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT fecha_adquisicion FROM eventos')
@@ -68,6 +77,7 @@ def ConexionDB():
         _39="{0}{1}".format(_39, "000A")
         config.logging.info( "Todo Normal 000A")
 
+
 def adquierefecha(ip):
     global comando, _39, r, secuenciaIp
     # Construct DB object
@@ -80,15 +90,15 @@ def adquierefecha(ip):
     else:
         c = 0
         while c <= config.reintentosdb:
+            c += 1
             try:
                 config.logging.info("Intentando comunicacion con Base de Datos")
                 ConexionDB()
             except MySQLdb.Error:
                 time.sleep(2)
-                c += 1
             else:
                 break
-        if c >= 3:
+        if c >= config.reintentosdb:
             config.logging.info("Comunicacion con Base de Datos Fallida")
             _39="{0}{1}".format(_39,"0005")
 
@@ -98,7 +108,7 @@ config.logging.info("Inicializando...")
 time.sleep(30)
 ping()
 SincronizarReloj()
-
+config.logging.info("Iniciando")
 while True:
     try:
         if ip <= 14:
@@ -167,7 +177,8 @@ while True:
         elif ip == 56:
             _39 = ""
         ip += 1
-    except socket.gaierror,e:
+
+    except socket.gaierror, e:
         s.close()
         config.logging.info("-----Socket No hay internet-------")
         config.logging.info("39 sin internet  --->{0}{1}{2}".format(encabezado39msn4,_39,final39))
