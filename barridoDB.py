@@ -110,6 +110,9 @@ time.sleep(30)
 ping()
 SincronizarReloj()
 config.logging.info("Iniciando")
+tiempoBarrido = 1500
+pruebaConexion = 0
+comunicacionG4.SendCommand("01A61")
 while True:
     try:
         if ip <= 14:
@@ -158,12 +161,14 @@ while True:
                 config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn4, _39, final39))
                 config.logging.info("Respuesta correcta!!!!  {0}".format(s.recv(1024)))
                 s.close()
-                pruebaConexion = 0
                 _39 = ""
             ip += 1
         else:
             ip = 1
-            time.sleep(300)
+            if pruebaConexion <= 0:
+            tiempoBarrido = 1500
+            time.sleep(tiempoBarrido)
+            pruebaConexion = 0
             ping()
 
     except socket.timeout, e:
@@ -196,6 +201,7 @@ while True:
         pruebaConexion += 1
         if pruebaConexion >= 4:
             comunicacionG4.SendCommand("01A60")
+            tiempoBarrido = 180
     except socket.error,e:
         s.close()
         config.logging.info("-----Socket Error-------")
