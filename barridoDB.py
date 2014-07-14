@@ -7,6 +7,7 @@ import socket
 import os
 import config
 import re
+import comunicacionG4
 
 
 encabezado39msn1 = "GET /A/B/7F260009813900000008"
@@ -157,6 +158,7 @@ while True:
                 config.logging.info("Envio 39  --->{0}{1}{2}".format(encabezado39msn4, _39, final39))
                 config.logging.info("Respuesta correcta!!!!  {0}".format(s.recv(1024)))
                 s.close()
+                pruebaConexion = 0
                 _39 = ""
             ip += 1
         else:
@@ -191,6 +193,9 @@ while True:
         elif ip == 56:
             _39 = ""
         ip += 1
+        pruebaConexion += 1
+        if pruebaConexion >= 4:
+            comunicacionG4.SendCommand("01A60")
     except socket.error,e:
         s.close()
         config.logging.info("-----Socket Error-------")
