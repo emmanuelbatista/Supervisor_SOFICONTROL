@@ -166,7 +166,7 @@ while True:
         else:
             ip = 1
             if pruebaConexion <= 0:
-            tiempoBarrido = 1500
+                tiempoBarrido = 1500
             time.sleep(tiempoBarrido)
             pruebaConexion = 0
             ping()
