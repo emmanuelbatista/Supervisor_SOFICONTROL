@@ -167,8 +167,16 @@ while True:
             ip = 1
             if pruebaConexion <= 0:
                 tiempoBarrido = 1500
+
+            counter += 1
+            config.logging.info("barridos realizados  --->{0}".format(counter))
+            if counter >= 60:
+                counter = 0
+                comunicacionG4.SendCommand("01A60")
+
             time.sleep(tiempoBarrido)
             pruebaConexion = 0
+            comunicacionG4.SendCommand("01A61")
             ping()
 
     except socket.timeout, e:
@@ -184,6 +192,11 @@ while True:
         elif ip == 56:
             _39 = ""
         ip += 1
+        pruebaConexion += 1
+        if pruebaConexion >= 4:
+            config.logging.info("No internet reiniciando router")
+            comunicacionG4.SendCommand("01A60")
+            tiempoBarrido = 180
 
     except socket.gaierror, e:
         s.close()
@@ -199,7 +212,9 @@ while True:
             _39 = ""
         ip += 1
         pruebaConexion += 1
+
         if pruebaConexion >= 4:
+            config.logging.info("No internet reiniciando router")
             comunicacionG4.SendCommand("01A60")
             tiempoBarrido = 180
     except socket.error,e:
