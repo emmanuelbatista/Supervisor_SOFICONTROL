@@ -86,7 +86,11 @@ def adquierefecha(ip):
     config.logging.info("Equipo Remoto {0} ".format(secuenciaIp))
 
     if ip > 52:
-        _39 = "{0}{1}".format(_39, "0000")
+        entero =int(round(counter))
+        config.logging.debug(hex(entero))
+        config.logging.info(format(entero, '#06X'))
+        valor =format(entero, '#06X')
+        _39 = "{0}{1}".format(_39, valor[2:])
 
     else:
         c = 0
@@ -106,13 +110,13 @@ def adquierefecha(ip):
 #GET /A/B/7F260009333900000008 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 FFED 0000 0000 HTTP/1.1
 ip = 1
 config.logging.info("Inicializando...")
-time.sleep(30)
 ping()
 SincronizarReloj()
 config.logging.info("Iniciando")
 tiempoBarrido = 1500
 pruebaConexion = 0
 comunicacionG4.SendCommand("01A61")
+counter = 0
 while True:
     try:
         if ip <= 14:
@@ -169,14 +173,15 @@ while True:
                 tiempoBarrido = 1500
 
             counter += 1
-            config.logging.info("barridos realizados  --->{0}".format(counter))
+            config.logging.info("barridos realizados  ---> {0}".format(counter))
             if counter >= 60:
                 counter = 0
                 comunicacionG4.SendCommand("01A60")
                 time.sleep(60)
                 comunicacionG4.SendCommand("01A61")
+            else:
+                time.sleep(tiempoBarrido)
 
-            time.sleep(tiempoBarrido)
             pruebaConexion = 0
             ping()
 
