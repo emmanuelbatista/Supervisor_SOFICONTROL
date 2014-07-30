@@ -8,7 +8,7 @@ import os
 import config
 import re
 import comunicacionG4
-
+import mosquitto
 
 encabezado39msn1 = "GET /A/B/7F260009813900000008"
 encabezado39msn2 = "GET /A/B/7F260009823900000008"
@@ -17,6 +17,12 @@ encabezado39msn4 = "GET /A/B/7F260009843900000008"
 _39 = ""
 final39 = " HTTP/1.1"
 
+# Create Mosquitto Client for Watchdog broker
+mqttcWC = mosquitto.Mosquitto("pingWC")
+
+def on_connect_pingWC(mosq, obj, rc):
+    config.logging.info("Supervisor Watchdog Client connected")
+    mqttcWC.subscribe("#", 0)
 
 def ping():
     pingMatch = None
@@ -117,8 +123,18 @@ tiempoBarrido = 1500
 pruebaConexion = 0
 comunicacionG4.SendCommand("01A61")
 counter = 0
+
+# Connect to mqtt watchdog server
+mqttcWC.on_connect = on_connect_pingWC
+mqttcWC.connect('localhost', 1884)
+
 while True:
     try:
+
+        # mqtt client loop for watchdog keep alive
+        config.logging.debug("ping: Watchdog Keep Alive")
+        mqttcWC.loop(0)
+
         if ip <= 14:
             adquierefecha(ip)
             config.logging.debug(_39)
@@ -174,13 +190,27 @@ while True:
 
             counter += 1
             config.logging.info("barridos realizados  ---> {0}".format(counter))
-            if counter >= 60:
+            if counter >= 50:
                 counter = 0
                 comunicacionG4.SendCommand("01A60")
-                time.sleep(60)
+
+                t = 0
+                while t < 60:
+                    # mqtt client loop for watchdog keep alive
+                    config.logging.debug("Watchdog Keep Alive")
+                    mqttcWC.loop(0)
+                    time.sleep(1)
+                    t += 1
+
                 comunicacionG4.SendCommand("01A61")
             else:
-                time.sleep(tiempoBarrido)
+                t = 0
+                while t < tiempoBarrido:
+                    # mqtt client loop for watchdog keep alive
+                    config.logging.debug("Watchdog Keep Alive")
+                    mqttcWC.loop(0)
+                    time.sleep(1)
+                    t += 1
 
             pruebaConexion = 0
             ping()
