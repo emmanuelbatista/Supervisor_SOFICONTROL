@@ -18,22 +18,25 @@ _39 = ""
 final39 = " HTTP/1.1"
 
 # Create Mosquitto Client for Watchdog broker
-mqttcWC = mosquitto.Mosquitto("pingWC")
+mqttcWC = mosquitto.Mosquitto("SupervisorWC")
 
-def on_connect_pingWC(mosq, obj, rc):
+def on_connect_pingWC(mosq , obj, rc):
     config.logging.info("Supervisor Watchdog Client connected")
     mqttcWC.subscribe("#", 0)
 
 def ping():
     pingMatch = None
     while pingMatch is None:
-        time.sleep(10)
         config.logging.info("Trying to ping google")
         pingResult = os.popen("ping -c 1 www.google.com").read()
         pingMatch = re.search(', 1 received', pingResult)
+        # mqtt client loop for watchdog keep alive
+        config.logging.debug("Watchdog Keep Alive")
+        mqttcWC.loop(0)
         if pingMatch != None:
             config.logging.info("ping to google succesfull")
         else:
+            time.sleep(5)
             config.logging.info("ping to google fail")
 
 
@@ -41,12 +44,15 @@ def SincronizarReloj():
     global r, comando
     r = 200
     while r != 0:
-        time.sleep(10)
         config.logging.info("Trying to syncronize the clock")
         r = os.system('ntpdate {0}'.format(config.ntpserver))
+        # mqtt client loop for watchdog keep alive
+        config.logging.debug("Watchdog Keep Alive")
+        mqttcWC.loop(0)
         if r == 0:
             config.logging.info("Reloj Sincronizado")
         else:
+            time.sleep(5)
             config.logging.info("No Hora Valida... Reintentando")
 
 
@@ -106,6 +112,9 @@ def adquierefecha(ip):
                 config.logging.info("Intentando comunicacion con Base de Datos")
                 ConexionDB()
             except MySQLdb.Error:
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
                 time.sleep(2)
             else:
                 break
@@ -118,8 +127,7 @@ ip = 1
 config.logging.info("Inicializando...")
 ping()
 SincronizarReloj()
-config.logging.info("Iniciando")
-tiempoBarrido = 1500
+tiempoBarrido = 1200
 pruebaConexion = 0
 comunicacionG4.SendCommand("01A61")
 counter = 0
@@ -139,6 +147,11 @@ while True:
             adquierefecha(ip)
             config.logging.debug(_39)
             if ip == 14:
+
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
                 s.send("{0}{1}{2}".format(encabezado39msn1, _39, final39))
@@ -151,6 +164,11 @@ while True:
             adquierefecha(ip)
             config.logging.debug(_39)
             if ip == 28:
+
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
                 s.send("{0}{1}{2}".format(encabezado39msn2, _39, final39))
@@ -163,6 +181,11 @@ while True:
             adquierefecha(ip)
             config.logging.debug(_39)
             if ip == 42:
+
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
                 s.send("{0}{1}{2}".format(encabezado39msn3, _39, final39))
@@ -175,6 +198,11 @@ while True:
             adquierefecha(ip)
             config.logging.debug(_39)
             if ip == 56:
+
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(("nebulalisten.com", 3001))
                 s.send("{0}{1}{2}".format(encabezado39msn4, _39, final39))
@@ -186,7 +214,7 @@ while True:
         else:
             ip = 1
             if pruebaConexion <= 0:
-                tiempoBarrido = 1500
+                tiempoBarrido = 1200
 
             counter += 1
             config.logging.info("barridos realizados  ---> {0}".format(counter))
@@ -204,6 +232,7 @@ while True:
 
                 comunicacionG4.SendCommand("01A61")
             else:
+
                 t = 0
                 while t < tiempoBarrido:
                     # mqtt client loop for watchdog keep alive
@@ -232,7 +261,13 @@ while True:
         if pruebaConexion >= 4:
             config.logging.info("No internet reiniciando router")
             comunicacionG4.SendCommand("01A60")
-            time.sleep(60)
+            t = 0
+            while t < 60:
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+                time.sleep(1)
+                t += 1
             comunicacionG4.SendCommand("01A61")
             tiempoBarrido = 120
 
@@ -254,7 +289,13 @@ while True:
         if pruebaConexion >= 4:
             config.logging.info("No internet reiniciando router")
             comunicacionG4.SendCommand("01A60")
-            time.sleep(60)
+            t = 0
+            while t < 60:
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+                time.sleep(1)
+                t += 1
             comunicacionG4.SendCommand("01A61")
             tiempoBarrido = 120
     except socket.error,e:
@@ -270,3 +311,18 @@ while True:
         elif ip == 56:
             _39 = ""
         ip += 1
+
+        pruebaConexion += 1
+
+        if pruebaConexion >= 4:
+            config.logging.info("No internet reiniciando router")
+            comunicacionG4.SendCommand("01A60")
+            t = 0
+            while t < 60:
+                # mqtt client loop for watchdog keep alive
+                config.logging.debug("Watchdog Keep Alive")
+                mqttcWC.loop(0)
+                time.sleep(1)
+                t += 1
+            comunicacionG4.SendCommand("01A61")
+            tiempoBarrido = 120

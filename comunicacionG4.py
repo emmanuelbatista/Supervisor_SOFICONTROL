@@ -18,12 +18,12 @@ servingConsole = False
 updateTime = ""
 
 # Create Mosquitto Client for Watchdog broker
-mqttcWC = mosquitto.Mosquitto("serialWC")
+#mqttcWC = mosquitto.Mosquitto("serialWC")
 
 
-def on_connect_cG4WC(mosq, obj, rc):
-    config.logging.info("comunicacionG4: Serial Watchdog Client connected")
-    mqttcWC.subscribe("#", 0)
+#def on_connect_cG4WC(mosq, obj, rc):
+    #config.logging.info("comunicacionG4: Serial Watchdog Client connected")
+    #mqttcWC.subscribe("#", 0)
 
 
 def tiempoEscValido():
@@ -162,8 +162,8 @@ def serialDaemon():
 
     config.logging.info("comunicacionG4: SendCommand Thread Running ...")
     # Connect to mqtt watchdog server
-    mqttcWC.on_connect = on_connect_cG4WC
-    mqttcWC.connect('localhost', 1884)
+    #mqttcWC.on_connect = on_connect_cG4WC
+    #mqttcWC.connect('localhost', 1884)
 
     # Reset killer Coil to ESC
     SendCommand('01A61')
@@ -202,8 +202,8 @@ def serialDaemon():
                     while True:
                         a=0
                 # mqtt client loop for watchdog keep alive
-                config.logging.debug("comunicacionG4: Watchdog Keep Alive")
-                mqttcWC.loop(0)
+                #config.logging.debug("comunicacionG4: Watchdog Keep Alive")
+                #mqttcWC.loop(0)
                 time.sleep(1)
                 t += 1
         except Exception as e:
