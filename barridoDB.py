@@ -26,34 +26,45 @@ def on_connect_pingWC(mosq , obj, rc):
 
 def ping():
     pingMatch = None
+    counter = 0
     while pingMatch is None:
-        config.logging.info("Trying to ping google")
-        pingResult = os.popen("ping -c 1 www.google.com").read()
-        pingMatch = re.search(', 1 received', pingResult)
-        # mqtt client loop for watchdog keep alive
-        config.logging.debug("Watchdog Keep Alive")
-        mqttcWC.loop(0)
-        if pingMatch != None:
-            config.logging.info("ping to google succesfull")
+        if counter >= 24:
+            comunicacionG4.SendCommand("01A60")
+            counter = 0
         else:
-            time.sleep(5)
-            config.logging.info("ping to google fail")
+            config.logging.info("Trying to ping google")
+            pingResult = os.popen("ping -c 1 www.google.com").read()
+            pingMatch = re.search(', 1 received', pingResult)
+            # mqtt client loop for watchdog keep alive
+            config.logging.debug("Watchdog Keep Alive")
+            mqttcWC.loop(0)
+            if pingMatch != None:
+                config.logging.info("ping to google succesfull")
+            else:
+                time.sleep(5)
+                config.logging.info("ping to google fail")
+                counter += 1
 
 
 def SincronizarReloj():
     global r, comando
     r = 200
     while r != 0:
-        config.logging.info("Trying to syncronize the clock")
-        r = os.system('ntpdate {0}'.format(config.ntpserver))
-        # mqtt client loop for watchdog keep alive
-        config.logging.debug("Watchdog Keep Alive")
-        mqttcWC.loop(0)
-        if r == 0:
-            config.logging.info("Reloj Sincronizado")
+        if counter >= 20:
+            comunicacionG4.SendCommand("01A60")
+            counter = 0
         else:
-            time.sleep(5)
-            config.logging.info("No Hora Valida... Reintentando")
+            config.logging.info("Trying to syncronize the clock")
+            r = os.system('ntpdate {0}'.format(config.ntpserver))
+            # mqtt client loop for watchdog keep alive
+            config.logging.debug("Watchdog Keep Alive")
+            mqttcWC.loop(0)
+            if r == 0:
+                config.logging.info("Reloj Sincronizado")
+            else:
+                time.sleep(5)
+                config.logging.info("No Hora Valida... Reintentando")
+                counter += 1
 
 
 def ConexionDB():
@@ -125,11 +136,11 @@ def adquierefecha(ip):
 #GET /A/B/7F260009333900000008 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 FFED 0000 0000 HTTP/1.1
 ip = 1
 config.logging.info("Inicializando...")
+comunicacionG4.SendCommand("01A61")
 ping()
 SincronizarReloj()
 tiempoBarrido = 1200
 pruebaConexion = 0
-comunicacionG4.SendCommand("01A61")
 counter = 0
 
 # Connect to mqtt watchdog server

@@ -9,6 +9,7 @@ import mosquitto
 import MySQLdb
 import bitState
 import re
+import ping
 
 
 port = serial.Serial("/dev/ttyAMA0", baudrate=19200, timeout=1)
