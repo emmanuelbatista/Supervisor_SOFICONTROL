@@ -49,6 +49,7 @@ def ping():
 def SincronizarReloj():
     global r, comando
     r = 200
+    counter = 0
     while r != 0:
         if counter >= 20:
             comunicacionG4.SendCommand("01A60")
