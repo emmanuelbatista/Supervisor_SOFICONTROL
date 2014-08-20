@@ -229,7 +229,7 @@ while True:
 
             counter += 1
             config.logging.info("barridos realizados  ---> {0}".format(counter))
-            if counter >= 50:
+            if counter >= 70:
                 counter = 0
                 comunicacionG4.SendCommand("01A60")
 
@@ -253,7 +253,6 @@ while True:
                     t += 1
 
             pruebaConexion = 0
-            ping()
 
     except socket.timeout, e:
         s.close()
