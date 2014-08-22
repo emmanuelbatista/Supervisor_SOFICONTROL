@@ -26,11 +26,11 @@ def on_connect_pingWC(mosq , obj, rc):
 
 def ping():
     pingMatch = None
-    counter = 0
+    counterPing = 0
     while pingMatch is None:
-        if counter >= 24:
+        if counterPing >= 10:
             comunicacionG4.SendCommand("01A60")
-            counter = 0
+            counterPing = 0
         else:
             config.logging.info("Trying to ping google")
             pingResult = os.popen("ping -c 1 www.google.com").read()
@@ -43,17 +43,17 @@ def ping():
             else:
                 time.sleep(5)
                 config.logging.info("ping to google fail")
-                counter += 1
+                counterPing += 1
 
 
 def SincronizarReloj():
     global r, comando
     r = 200
-    counter = 0
+    counterSincronizaReloj = 0
     while r != 0:
-        if counter >= 20:
+        if counterSincronizaReloj >= 20:
             comunicacionG4.SendCommand("01A60")
-            counter = 0
+            counterSincronizaReloj = 0
         else:
             config.logging.info("Trying to syncronize the clock")
             r = os.system('ntpdate {0}'.format(config.ntpserver))
@@ -65,7 +65,7 @@ def SincronizarReloj():
             else:
                 time.sleep(5)
                 config.logging.info("No Hora Valida... Reintentando")
-                counter += 1
+                counterSincronizaReloj += 1
 
 
 def ConexionDB():
@@ -104,13 +104,13 @@ def ConexionDB():
 
 
 def adquierefecha(ip):
-    global comando, _39, r, secuenciaIp
+    global comando, _39, r, secuenciaIp, counterBarrido
     # Construct DB object
     secuenciaIp = "192.168.1.{0}".format(ip)
     config.logging.info("Equipo Remoto {0} ".format(secuenciaIp))
 
     if ip > 52:
-        entero =int(round(counter))
+        entero =int(round(counterBarrido))
         config.logging.debug(hex(entero))
         config.logging.info(format(entero, '#06X'))
         valor =format(entero, '#06X')
@@ -137,16 +137,21 @@ def adquierefecha(ip):
 #GET /A/B/7F260009333900000008 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 FFED 0000 0000 HTTP/1.1
 ip = 1
 config.logging.info("Inicializando...")
-comunicacionG4.SendCommand("01A61")
-ping()
-SincronizarReloj()
-tiempoBarrido = 1200
-pruebaConexion = 0
-counter = 0
 
 # Connect to mqtt watchdog server
 mqttcWC.on_connect = on_connect_pingWC
 mqttcWC.connect('localhost', 1884)
+
+comunicacionG4.SendCommand("01A61")
+
+ping()
+SincronizarReloj()
+tiempoBarrido = 1200
+pruebaConexion = 0
+counterBarrido = 0
+comunicacionG4.SendCommand("01A61")
+
+
 
 while True:
     try:
@@ -161,7 +166,7 @@ while True:
             if ip == 14:
 
                 # mqtt client loop for watchdog keep alive
-                config.logging.debug("Watchdog Keep Alive")
+                config.logging.info("Watchdog Keep Alive")
                 mqttcWC.loop(0)
 
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -228,10 +233,10 @@ while True:
             if pruebaConexion <= 0:
                 tiempoBarrido = 1200
 
-            counter += 1
-            config.logging.info("barridos realizados  ---> {0}".format(counter))
-            if counter >= 70:
-                counter = 0
+            counterBarrido += 1
+            config.logging.info("barridos realizados  ---> {0}".format(counterBarrido))
+            if counterBarrido >= 70:
+                counterBarrido = 0
                 comunicacionG4.SendCommand("01A60")
 
                 t = 0
