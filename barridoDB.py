@@ -95,12 +95,12 @@ def ConexionDB():
     config.logging.info(format(entero, '#06X'))
     valor =format(entero, '#06X')
 
-    if entero >= 11:
+    if entero >= 13:
         _39 = "{0}{1}".format(_39, valor[2:])
         config.logging.info("Tiempo de desconexion = {0}".format(minutosDesincronizados))
     else:
-        _39="{0}{1}".format(_39, "000A")
-        config.logging.info( "Todo Normal 000A")
+        _39="{0}{1}".format(_39, "000C")
+        config.logging.info( "Todo Normal 000C")
 
 
 def adquierefecha(ip):
@@ -109,8 +109,39 @@ def adquierefecha(ip):
     secuenciaIp = "192.168.1.{0}".format(ip)
     config.logging.info("Equipo Remoto {0} ".format(secuenciaIp))
 
-    if ip > 52:
+    if ip == 53:
         entero =int(round(counterBarrido))
+        config.logging.debug(hex(entero))
+        config.logging.info(format(entero, '#06X'))
+        valor =format(entero, '#06X')
+        _39 = "{0}{1}".format(_39, valor[2:])
+
+
+#Sending Ping Responses of Access Points
+    if ip >= 54:
+
+        radioFuera = 0
+        pingMatch = None
+        counterPing = 248
+        numPosition = 1
+        while counterPing <= 253:
+            config.logging.info("Trying to ping 192.168.1.{0}".format(counterPing))
+            pingResult = os.popen("ping -c 1 192.168.1.{0}".format(counterPing)).read()
+            pingMatch = re.search(', 1 received', pingResult)
+
+            # mqtt client loop for watchdog keep alive
+            config.logging.debug("Watchdog Keep Alive")
+            mqttcWC.loop(0)
+
+            if pingMatch != None:
+                config.logging.info("ping to 192.168.1.{0} succesfull".format(counterPing))
+            else:
+                config.logging.info("ping to 192.168.1.{0} fail".format(counterPing))
+                radioFuera = radioFuera+numPosition
+            counterPing += 1
+            numPosition = numPosition*2
+
+        entero =int(round(radioFuera))
         config.logging.debug(hex(entero))
         config.logging.info(format(entero, '#06X'))
         valor =format(entero, '#06X')
